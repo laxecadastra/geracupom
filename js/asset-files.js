@@ -1,0 +1,25 @@
+// Gerado por scripts/embed-assets.mjs — não editar à mão.
+window.ASSET_FILES = {
+  "etiqueta": "assets/modelo-etiqueta.webp",
+  "osakaProduto": "assets/osaka-produto.jpg",
+  "osakaCampanha": "assets/osaka-campanha.jpg",
+  "neoBege": "assets/go-neo-bege.jpg",
+  "neoVerde": "assets/go-neo-verde.jpg",
+  "neoPreto": "assets/go-neo-preto.jpg",
+  "chineloAzul": "assets/chinelo-azul.jpg",
+  "chineloCoral": "assets/chinelo-coral.jpg",
+  "chineloLaranja": "assets/chinelo-laranja.jpg",
+  "acaiCamisa": "assets/acai-camisa.jpg",
+  "miniRaiox": "assets/mini-raiox.jpg",
+  "miniAndyart": "assets/mini-andyart.jpg",
+  "miniIrmao": "assets/mini-irmao.jpg",
+  "miniAcai": "assets/mini-acai.jpg",
+  "miniListra": "assets/mini-listra.jpg",
+  "miniFc": "assets/mini-reservafc.jpg",
+  "bbFc": "assets/bb-reservafc.jpg",
+  "bbPrimeiroGol": "assets/bb-primeiro-gol.jpg",
+  "bbMelhorFilho": "assets/bb-melhor-filho.jpg",
+  "goMiniTyper": "assets/gomini-typer.jpg",
+  "goMiniAstral": "assets/gomini-astral.jpg",
+  "goMiniCanvas": "assets/gomini-canvas.jpg"
+};
