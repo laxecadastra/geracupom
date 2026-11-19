@@ -96,8 +96,15 @@
     });
   }
 
+  /** Modelo no "tamanho da arte": largura 1080 e altura proporcional à arte do feed (até 1:4). */
+  function alturaDaArte(img, W) {
+    if (!img || !img.width) return FEED_H;
+    return Math.min(W * 4, Math.max(200, Math.round((W * img.height) / img.width)));
+  }
+
   function render(ctx, W, H, d, t, images) {
-    const own = H > FEED_H && t.status;
+    const artSize = t.sizeMode === "art";
+    const own = !artSize && H > FEED_H && t.status;
     const layout = own ? t.status : t.feed;
     const img = own ? images.status : images.feed;
     ctx.fillStyle = t.background || "#000";
@@ -106,7 +113,7 @@
       const ih = img.height * (W / img.width);
       ctx.drawImage(img, 0, (H - ih) / 2, W, ih);
     }
-    if (!own) ctx.translate(0, Math.round((H - FEED_H) / 2));
+    if (!own && !artSize) ctx.translate(0, Math.round((H - FEED_H) / 2));
 
     if (layout.subtitle.enabled) drawText(ctx, layout.subtitle, [{ text: d.linha2, color: layout.subtitle.color }]);
     drawText(ctx, layout.coupon, [
@@ -125,6 +132,11 @@
       produto: t.product || undefined,
       link: t.link || undefined,
       mensagem: t.message || undefined, // texto do WhatsApp com {codigo}, {link}…; vazio = padrão
+      // tamanho da arte: a imagem sai do tamanho da arte e o vendedor não escolhe formato
+      tamanhoDaArte: t.sizeMode === "art",
+      altura(formato, W, HEIGHTS) {
+        return t.sizeMode === "art" ? alturaDaArte(images.feed, W) : HEIGHTS[formato];
+      },
       origem: "api",
       // camadas que o modelo usa: sem elas, o gerador esconde a opção correspondente
       campos: {

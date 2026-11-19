@@ -27,6 +27,8 @@ sem ela, a página não tem modelos.
   Enquanto carrega, a área dos modelos avisa. Se a API não responder, aparece o aviso com
   **Tentar de novo**, e compartilhar/baixar ficam desligados. A regra de desenho é a mesma da prévia
   do painel (`central-stv/web/lib/render.ts`): mudou lá, mude aqui.
+- Modelo no **tamanho da arte** (`sizeMode: "art"` na Central): a imagem sai do tamanho da arte (largura 1080) e o
+  seletor Post/Status some (`tamanhoDaArte`/`altura` em `js/api-templates.js`).
 - O gerador só pergunta o que o modelo escreve: sem a camada "de vendedor(a)" no modelo, o seletor
   "Na imagem, escrever" some; sem o rodapé, some o "Colocar meu nome e loja" (`campos` em `js/api-templates.js`).
 - Os antigos modelos desenhados em código (`js/templates.js`, com fotos em `assets/`,

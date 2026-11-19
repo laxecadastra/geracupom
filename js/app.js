@@ -167,8 +167,11 @@
 
   // ---------- render ----------
   const work = document.createElement("canvas");
+  /** Altura do canvas: 1350/1920 pelos formatos, ou a da arte quando o modelo está no tamanho da arte. */
+  const alturaDe = (tpl, formato) => (tpl && tpl.altura ? tpl.altura(formato, W, HEIGHTS) : HEIGHTS[formato]);
+
   function renderTo(canvas, tpl, formato) {
-    const H = HEIGHTS[formato];
+    const H = alturaDe(tpl, formato);
     canvas.width = W;
     canvas.height = H;
     const ctx = canvas.getContext("2d");
@@ -267,7 +270,8 @@
     const campos = tpl ? tpl.campos || { linha2: true, rodape: true } : { linha2: false, rodape: false };
     $("#campo-genero").hidden = !campos.linha2;
     $("#mais").hidden = !campos.rodape;
-    els.preview.style.aspectRatio = `${W} / ${HEIGHTS[state.formato]}`;
+    $("#campo-formato").hidden = !!(tpl && tpl.tamanhoDaArte);
+    els.preview.style.aspectRatio = `${W} / ${alturaDe(tpl, state.formato)}`;
     if (tpl) {
       renderTo(els.preview, tpl, state.formato);
     } else {
@@ -284,7 +288,7 @@
       const c = b.querySelector("canvas");
       const tw = 240;
       c.width = tw;
-      c.height = Math.round((tw * HEIGHTS[state.formato]) / W);
+      c.height = Math.round((tw * alturaDe(t, state.formato)) / W);
       const x = c.getContext("2d");
       x.imageSmoothingQuality = "high";
       x.drawImage(work, 0, 0, c.width, c.height);
