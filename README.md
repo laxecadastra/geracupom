@@ -48,3 +48,14 @@ Vercel, Netlify, GitHub Pages…). Os arquivos necessários são `index.html`, `
 Novo modelo = um objeto `{ id, nome, marca, produto?, link?, draw }` adicionado em
 `window.TEMPLATES`. `marca` é `reserva`, `mini` ou `go` (lista em `window.MARCAS`).
 `produto` e `link` entram na mensagem do WhatsApp; sem eles vai o site da marca.
+
+## Prévia do link (WhatsApp) e ícones
+
+- `index.html` tem título, descrição e tags Open Graph/Twitter. A imagem da prévia é
+  `og-image.jpg` (1200×630) e **precisa de URL absoluta**: hoje aponta para
+  `https://geracupom.vercel.app/`. Se o domínio for outro, troque nas tags `og:url`,
+  `og:image`, `og:image:secure_url`, `twitter:image` e `canonical`.
+- O WhatsApp guarda a prévia de cada link por um tempo. Para testar uma mudança, mande o
+  link com um parâmetro novo (ex.: `?v=2`).
+- Ícones: `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`,
+  `icon-512.png` e `site.webmanifest` (para "adicionar à tela inicial").
