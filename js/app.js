@@ -26,7 +26,7 @@
     nome: "",
     loja: "",
     marca: "reserva",
-    modelo: "etiqueta",
+    modelo: "",
     formato: "feed",
     linkOn: true,
     linkPage: "",
@@ -37,14 +37,35 @@
     state = { ...defaults, ...JSON.parse(localStorage.getItem(STORE_KEY) || "{}") };
   } catch {}
   if (!MARCAS.some((m) => m.id === state.marca)) state.marca = defaults.marca;
-  const salvo = TEMPLATES.find((t) => t.id === state.modelo);
-  if (!salvo || salvo.marca !== state.marca) state.modelo = TEMPLATES.find((t) => t.marca === state.marca).id;
   if (!LINHA2[state.genero]) state.genero = defaults.genero;
   const save = () => {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
     } catch {}
   };
+
+  // Modelos: só os publicados na Central STV, que chegam em start() (a lista começa vazia).
+  let status = "loading"; // loading | ok | error
+  const currentTpl = () => TEMPLATES.find((t) => t.id === state.modelo) || null;
+  const currentMarca = () => {
+    const t = currentTpl();
+    return MARCAS.find((m) => m.id === (t ? t.marca : state.marca)) || MARCAS[0];
+  };
+  const marcasComModelo = () => MARCAS.filter((m) => TEMPLATES.some((t) => t.marca === m.id));
+
+  /** Mantém o modelo salvo se ele ainda existe; senão, o primeiro da marca (ou o primeiro de todos). */
+  function escolherModelo() {
+    const atual = currentTpl();
+    if (atual) {
+      state.marca = atual.marca;
+      return;
+    }
+    const t = TEMPLATES.find((x) => x.marca === state.marca) || TEMPLATES[0];
+    if (t) {
+      state.modelo = t.id;
+      state.marca = t.marca;
+    }
+  }
 
   const cleanCode = (v) => v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
   const isValid = (c) => /^[A-Z]{2,}\d{2,}$/.test(c) || /^[A-Z0-9]{5,}$/.test(c);
@@ -62,20 +83,43 @@
     };
   }
 
+  // sem campanha fixa: a mensagem serve para qualquer ação do time de marketing
   const INTRO = {
-    reserva: "É Black Friday na Reserva! 🖤",
-    mini: "É Black Friday na Reserva Mini! 🎈",
-    go: "É Black Friday na Reserva Go! 👟",
+    reserva: "Oi! Tenho um código especial pra você comprar na Reserva. 🖤",
+    mini: "Oi! Tenho um código especial pra você comprar na Reserva Mini. 🎈",
+    go: "Oi! Tenho um código especial pra você comprar na Reserva Go. 👟",
   };
 
+  /**
+   * Mensagem do WhatsApp. MESMA regra de central-stv/web/lib/message.ts (prévia do painel):
+   * modelo com mensagem própria troca {codigo}, {link}, {nome}, {loja}, {produto} e {marca};
+   * sem {link} no texto, o link vai numa linha no fim. Sem mensagem própria, usa a padrão abaixo.
+   */
   function message() {
-    const cupom = { vendedora: "meu cupom de vendedora", vendedor: "meu cupom de vendedor" }[state.genero] || "meu cupom";
-    const t = TEMPLATES.find((x) => x.id === state.modelo) || TEMPLATES[0];
-    const marca = MARCAS.find((m) => m.id === t.marca) || MARCAS[0];
+    const t = currentTpl();
+    const texto = t && t.mensagem && t.mensagem.trim();
+    if (!texto) return mensagemPadrao();
+    const vars = {
+      codigo: state.code,
+      link: linkFinal(),
+      nome: state.nome.trim(),
+      loja: state.loja.trim(),
+      produto: t.produto || "",
+      marca: currentMarca().nome,
+    };
+    let out = texto.replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(vars, k) ? vars[k] : m));
+    if (!texto.includes("{link}")) out += "\n" + vars.link;
+    return out.replace(/[ \t]{2,}/g, " ").trim();
+  }
+
+  function mensagemPadrao() {
+    const cupom = { vendedora: "meu código de vendedora", vendedor: "meu código de vendedor" }[state.genero] || "meu código";
+    const t = currentTpl();
+    const marca = currentMarca();
     const pagina = paginaColada();
-    const alvo = pagina || !t.produto ? " nas suas compras" : ` no ${t.produto}`;
+    const alvo = pagina || !t || !t.produto ? " nas suas compras" : ` no ${t.produto}`;
     const link = linkFinal();
-    const aviso = state.linkOn ? " O cupom já entra aplicado pelo link:" : "";
+    const aviso = state.linkOn ? " O código já entra aplicado pelo link:" : "";
     return `${INTRO[marca.id]} Use ${cupom} *${state.code}*${alvo}.${aviso}\n${link}`;
   }
 
@@ -95,9 +139,9 @@
   }
 
   function linkFinal() {
-    const t = TEMPLATES.find((x) => x.id === state.modelo) || TEMPLATES[0];
-    const marca = MARCAS.find((m) => m.id === t.marca) || MARCAS[0];
-    const u = paginaColada() || new URL(t.link || marca.site);
+    const t = currentTpl();
+    const marca = currentMarca();
+    const u = paginaColada() || new URL((t && t.link) || marca.site);
     u.protocol = "https:";
     if (state.linkOn && isValid(state.code)) u.searchParams.set("bl_pr", state.code);
     else u.searchParams.delete("bl_pr");
@@ -116,67 +160,9 @@
       hint.textContent = "Sem página colada, vai a página do produto do modelo (ou a home da marca).";
       hint.dataset.tone = "";
     } else {
-      hint.textContent = "Link pronto, com o seu cupom.";
+      hint.textContent = "Link pronto, com o seu código.";
       hint.dataset.tone = "ok";
     }
-  }
-
-  // ---------- logo ----------
-  const logoPath = window.LOGO_RESERVA ? new Path2D(LOGO_RESERVA.d) : null;
-  function drawLogo(ctx, tpl, H) {
-    if (!logoPath || !tpl.logo) return;
-    const { x, y, h, cor, topo } = tpl.logo;
-    const [, , vw, vh] = LOGO_RESERVA.viewBox;
-    const s = h / vh;
-    ctx.save();
-    ctx.translate(x - (vw * s) / 2, y + (topo ? 0 : Math.round((H - 1350) / 2)));
-    ctx.scale(s, s);
-    ctx.fillStyle = cor;
-    ctx.fill(logoPath);
-    ctx.restore();
-  }
-
-  // ---------- imagens ----------
-  const assets = {};
-  function loadImage(src) {
-    return new Promise((res) => {
-      const i = new Image();
-      i.onload = () => res(i);
-      i.onerror = () => res(null);
-      i.src = src;
-    });
-  }
-  /** Hospedado (http/https): fotos direto de assets/. Aberto do disco (file://): carrega
-   *  js/assets.js com as fotos embutidas, porque imagem de arquivo local "suja" o canvas. */
-  function assetSources() {
-    if (location.protocol !== "file:") return Promise.resolve(window.ASSET_FILES || {});
-    if (window.ASSET_SRC) return Promise.resolve(window.ASSET_SRC);
-    return new Promise((res) => {
-      const s = document.createElement("script");
-      s.src = "js/assets.js";
-      s.onload = () => res(window.ASSET_SRC || {});
-      s.onerror = () => res({});
-      document.head.append(s);
-    });
-  }
-
-  async function loadAssets() {
-    const src = await assetSources();
-    const keys = Object.keys(src);
-    const imgs = await Promise.all(keys.map((k) => loadImage(src[k])));
-    keys.forEach((k, i) => (assets[k] = imgs[i]));
-    // cor do fundo de cada foto, para os modelos emendarem sem costura
-    assets.bg = {};
-    const c = document.createElement("canvas");
-    c.width = c.height = 1;
-    const x = c.getContext("2d", { willReadFrequently: true });
-    for (const k of keys) {
-      if (!assets[k]) continue;
-      x.drawImage(assets[k], 20, 20, 1, 1, 0, 0, 1, 1);
-      const [r, g, b] = x.getImageData(0, 0, 1, 1).data;
-      assets.bg[k] = `rgb(${r},${g},${b})`;
-    }
-    assets.osakaBg = assets.bg.osakaProduto;
   }
 
   // ---------- render ----------
@@ -187,15 +173,16 @@
     canvas.height = H;
     const ctx = canvas.getContext("2d");
     ctx.save();
-    tpl.draw(ctx, W, H, data(), assets);
+    tpl.draw(ctx, W, H, data());
     ctx.restore();
-    drawLogo(ctx, tpl, H);
   }
 
   function buildTabs() {
     const box = $("#marcas");
     box.textContent = "";
-    for (const m of MARCAS) {
+    const marcas = marcasComModelo(); // marca sem modelo publicado não ganha aba
+    box.hidden = marcas.length < 1;
+    for (const m of marcas) {
       const b = document.createElement("button");
       b.type = "button";
       b.setAttribute("role", "tab");
@@ -223,7 +210,27 @@
       b.setAttribute("aria-selected", b.dataset.marca === state.marca);
     }
     els.thumbs.textContent = "";
-    {
+    if (status !== "ok" || !TEMPLATES.length) {
+      const box = document.createElement("div");
+      box.className = "thumbs-msg";
+      const p = document.createElement("p");
+      p.textContent =
+        status === "loading"
+          ? "Carregando os modelos…"
+          : status === "error"
+            ? "Não consegui carregar os modelos agora. Confira a internet e tente de novo."
+            : "Nenhum modelo publicado ainda. Assim que o time de marketing publicar, ele aparece aqui.";
+      box.append(p);
+      if (status !== "loading") {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "btn-mini";
+        b.textContent = "Tentar de novo";
+        b.addEventListener("click", carregar);
+        box.append(b);
+      }
+      els.thumbs.append(box);
+    } else {
       const list = TEMPLATES.filter((t) => t.marca === state.marca);
       const row = document.createElement("div");
       row.className = "thumbs-row";
@@ -255,9 +262,18 @@
   let blobToken = 0;
 
   function render() {
-    const tpl = TEMPLATES.find((t) => t.id === state.modelo) || TEMPLATES[0];
-    renderTo(els.preview, tpl, state.formato);
+    const tpl = currentTpl();
+    // só pergunta o que o modelo escreve: "de vendedor(a)" e nome/loja são camadas opcionais
+    const campos = tpl ? tpl.campos || { linha2: true, rodape: true } : { linha2: false, rodape: false };
+    $("#campo-genero").hidden = !campos.linha2;
+    $("#mais").hidden = !campos.rodape;
     els.preview.style.aspectRatio = `${W} / ${HEIGHTS[state.formato]}`;
+    if (tpl) {
+      renderTo(els.preview, tpl, state.formato);
+    } else {
+      els.preview.width = W; // limpa a prévia enquanto não há modelo
+      els.preview.height = HEIGHTS[state.formato];
+    }
 
     // miniaturas
     for (const b of els.thumbs.querySelectorAll(".thumb")) {
@@ -277,16 +293,19 @@
     syncLink();
 
     // estado dos botões e dica
-    const ok = isValid(state.code);
+    const ok = isValid(state.code) && !!tpl;
     els.share.disabled = els.download.disabled = els.copy.disabled = !ok;
     if (!state.code) {
-      els.hint.textContent = "Digite seu cupom para ele aparecer na imagem.";
+      els.hint.textContent = "Digite seu código para ele aparecer na imagem.";
       els.hint.dataset.tone = "";
-    } else if (!ok) {
-      els.hint.textContent = "Cupom curto demais. Ex.: RSV1481";
+    } else if (!isValid(state.code)) {
+      els.hint.textContent = "Código curto demais. Ex.: RSV1481";
       els.hint.dataset.tone = "warn";
+    } else if (!tpl) {
+      els.hint.textContent = status === "loading" ? "Carregando os modelos…" : "Sem modelo disponível agora.";
+      els.hint.dataset.tone = status === "loading" ? "" : "warn";
     } else if (!/^RSV\d+$/.test(state.code)) {
-      els.hint.textContent = "Confira: o cupom de vendedor costuma ser RSV + números.";
+      els.hint.textContent = "Confira: o código de vendedor costuma ser RSV + números.";
       els.hint.dataset.tone = "warn";
     } else {
       els.hint.textContent = "Pronto! Agora escolha o modelo.";
@@ -314,7 +333,7 @@
   };
 
   // ---------- ações ----------
-  const fileName = () => `black-friday-${state.code}-${state.modelo}.jpg`;
+  const fileName = () => `reserva-${state.code}-${state.modelo}.jpg`;
 
   function toast(msg) {
     els.toast.textContent = msg;
@@ -456,12 +475,26 @@
       p.setAttribute("d", LOGO_RESERVA.d);
       top.append(p);
     }
+    await carregar();
+    document.body.classList.add("ready");
+  }
+
+  /** Busca os modelos na Central STV e remonta abas, miniaturas e prévia. */
+  async function carregar() {
+    status = "loading";
     buildTabs();
     buildThumbs();
-    const fonts = (window.TEMPLATE_FONTS || []).map((f) => document.fonts.load(f).catch(() => null));
-    await Promise.race([Promise.all([...fonts, loadAssets()]), new Promise((r) => setTimeout(r, 6000))]);
-    if (!assets.etiqueta) await loadAssets();
-    document.body.classList.add("ready");
+    render();
+    try {
+      await window.loadApiTemplates();
+      status = "ok";
+    } catch {
+      status = "error";
+    }
+    escolherModelo();
+    save();
+    buildTabs();
+    buildThumbs();
     render();
   }
   start();

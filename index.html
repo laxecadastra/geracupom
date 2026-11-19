@@ -4,29 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0c0204" />
-    <title>Gerador de cupom Black Friday | Reserva</title>
+    <title>Gerador de imagem do vendedor | Reserva</title>
     <meta
       name="description"
-      content="Crie em segundos sua imagem de Black Friday com o seu cupom de vendedor e mande no WhatsApp. Modelos Reserva, Reserva Mini e Reserva Go."
+      content="Crie em segundos sua imagem com o seu código de vendedor e mande no WhatsApp. Modelos Reserva, Reserva Mini e Reserva Go."
     />
     <link rel="canonical" href="https://geracupom.vercel.app/" />
 
     <!-- prévia do link (WhatsApp, Instagram, Facebook, LinkedIn): a imagem precisa de URL absoluta -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
-    <meta property="og:site_name" content="Black Friday Reserva" />
-    <meta property="og:title" content="Gerador de cupom Black Friday | Reserva" />
-    <meta property="og:description" content="Crie sua imagem com o seu cupom de vendedor e mande no WhatsApp ou salve no celular." />
+    <meta property="og:site_name" content="Reserva" />
+    <meta property="og:title" content="Gerador de imagem do vendedor | Reserva" />
+    <meta property="og:description" content="Crie sua imagem com o seu código de vendedor e mande no WhatsApp ou salve no celular." />
     <meta property="og:url" content="https://geracupom.vercel.app/" />
     <meta property="og:image" content="https://geracupom.vercel.app/og-image.jpg" />
     <meta property="og:image:secure_url" content="https://geracupom.vercel.app/og-image.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Black Friday Reserva: modelos de imagem com o cupom do vendedor" />
+    <meta property="og:image:alt" content="Reserva: modelos de imagem com o código do vendedor" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Gerador de cupom Black Friday | Reserva" />
-    <meta name="twitter:description" content="Crie sua imagem com o seu cupom de vendedor e mande no WhatsApp ou salve no celular." />
+    <meta name="twitter:title" content="Gerador de imagem do vendedor | Reserva" />
+    <meta name="twitter:description" content="Crie sua imagem com o seu código de vendedor e mande no WhatsApp ou salve no celular." />
     <meta name="twitter:image" content="https://geracupom.vercel.app/og-image.jpg" />
 
     <!-- ícones -->
@@ -46,26 +46,26 @@
   <body>
     <header class="top">
       <svg class="top-logo" id="top-logo" viewBox="0 0 28 32" aria-hidden="true"></svg>
-      <span class="top-title">Black Friday Reserva</span>
+      <span class="top-title">Reserva</span>
     </header>
 
     <main class="layout">
       <div class="controls">
         <div class="intro">
-          <h1>Sua imagem de Black Friday, com o seu cupom.</h1>
-          <p class="sub">Digite o cupom, escolha o modelo e mande no WhatsApp ou salve no celular.</p>
+          <h1>Sua imagem com o seu código de vendedor.</h1>
+          <p class="sub">Digite o código, escolha o modelo e mande no WhatsApp ou salve no celular.</p>
         </div>
 
-        <!-- 1. cupom -->
+        <!-- 1. código do vendedor -->
         <section class="step" aria-labelledby="step-1">
-          <h2 class="step-title" id="step-1"><span class="step-n" aria-hidden="true">1</span>Seu cupom</h2>
+          <h2 class="step-title" id="step-1"><span class="step-n" aria-hidden="true">1</span>Seu código</h2>
 
           <div class="tag-wrap">
             <svg class="tag-string" viewBox="0 0 80 120" aria-hidden="true">
               <path d="M44 118 C 30 90, 6 70, 14 38 C 20 14, 50 6, 74 2" />
             </svg>
             <label class="tag" for="code">
-              <span class="tag-label">Cupom de vendedor</span>
+              <span class="tag-label">Código do vendedor</span>
               <input
                 id="code"
                 class="code-input"
@@ -82,11 +82,11 @@
             </label>
           </div>
 
-          <div class="field">
-            <span class="label" id="lbl-genero">Na imagem: “use meu cupom de…”</span>
+          <div class="field" id="campo-genero">
+            <span class="label" id="lbl-genero">Na imagem, escrever:</span>
             <div class="seg seg-3" role="radiogroup" aria-labelledby="lbl-genero">
-              <button type="button" role="radio" data-genero="vendedora">vendedora</button>
-              <button type="button" role="radio" data-genero="vendedor">vendedor</button>
+              <button type="button" role="radio" data-genero="vendedora">de vendedora</button>
+              <button type="button" role="radio" data-genero="vendedor">de vendedor</button>
               <button type="button" role="radio" data-genero="neutro">exclusivo</button>
             </div>
           </div>
@@ -128,7 +128,7 @@
           <div class="panel link-panel">
             <label class="check">
               <input type="checkbox" id="link-on" checked />
-              <span>Mandar o link do site com o cupom já aplicado</span>
+              <span>Mandar o link do site com o código já aplicado</span>
             </label>
             <div id="link-body" class="panel-body">
               <label class="field">
@@ -166,9 +166,10 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script src="js/asset-files.js"></script>
     <script src="js/logo.js"></script>
-    <script src="js/templates.js"></script>
+    <script src="js/marcas.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-templates.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

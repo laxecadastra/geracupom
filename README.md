@@ -1,4 +1,4 @@
-# Gerador de cupom do vendedor (Black Friday)
+# Gerador de imagem com o código do vendedor
 
 Página estática para o vendedor Reserva digitar o cupom (`RSVxxxx`), escolher um modelo e
 compartilhar a imagem no WhatsApp ou salvar no celular. Não tem backend nem build.
@@ -15,26 +15,26 @@ de compartilhar do celular (Web Share) só aparece em **HTTPS** ou `localhost`.
 ## Publicar
 
 Suba a pasta inteira em qualquer hospedagem estática com HTTPS (Azure Static Web Apps,
-Vercel, Netlify, GitHub Pages…). Os arquivos necessários são `index.html`, `css/` e `js/`
-(as fotos carregam de `assets/` quando a página está hospedada; `js/assets.js` só é usado ao abrir o `index.html` direto do disco).
+Vercel, Netlify, GitHub Pages…). Os arquivos necessários são `index.html`, `css/` e `js/`.
+Antes de publicar, troque `STV_API_URL` em `js/config.js` pela URL pública da API da Central STV:
+sem ela, a página não tem modelos.
 
 ## Como funciona
 
-- `js/templates.js`: os modelos, desenhados em `<canvas>` a 1080 px de largura
-  (1350 de altura no feed 4:5, 1920 no status 9:16), separados por marca (abas na página):
-  - **Reserva**: Etiqueta 3D (arte original, com cupom e texto redesenhados por cima),
-    Leve mais (desconto progressivo +20/25/30%), Outlet 70%, Camisa Açaí (novidade),
-    Neon, Ticket, Fita, Editorial, Porcentagem.
-  - **Reserva Mini**: Pica-Pau (foto), Turma (3 camisetas), Leve mais, Tal pai tal filho
-    (Camisa Est Açaí adulto + Mini), Bebê, Reserva FC (do bebê ao mini), Verão, Tênis
-    (Go Mini), Confete (só texto).
-  - **Reserva Go** (calçados): R Osaka Produto, R Osaka Campanha, Neo Vision 3 cores,
-    Chinelo RSV Rio.
-- Os percentuais da campanha (progressivo e outlet) estão fixos em `PROGRESSIVO` e no
-  modelo `outlet` de `js/templates.js`. Atualize lá se a regra mudar.
+- **Modelos**: vêm todos da Central STV, o painel onde o time de marketing cadastra as artes.
+  `js/api-templates.js` busca `GET <STV_API_URL>/public/templates` (URL em `js/config.js`) e a página
+  mostra só esses modelos. Marca sem modelo publicado não ganha aba (marcas em `js/marcas.js`).
+  Enquanto carrega, a área dos modelos avisa. Se a API não responder, aparece o aviso com
+  **Tentar de novo**, e compartilhar/baixar ficam desligados. A regra de desenho é a mesma da prévia
+  do painel (`central-stv/web/lib/render.ts`): mudou lá, mude aqui.
+- O gerador só pergunta o que o modelo escreve: sem a camada "de vendedor(a)" no modelo, o seletor
+  "Na imagem, escrever" some; sem o rodapé, some o "Colocar meu nome e loja" (`campos` em `js/api-templates.js`).
+- Os antigos modelos desenhados em código (`js/templates.js`, com fotos em `assets/`,
+  `js/asset-files.js` e `js/assets.js`) não são mais carregados pela página. Ficam no repositório só
+  como referência para recriar as artes na Central.
 - `js/app.js`: formulário, miniaturas, prévia, compartilhar/baixar. O cupom, nome e loja
   ficam salvos no próprio navegador do vendedor.
-- Logo: o pássaro da Reserva (`js/logo.js`, extraído de `assets/logo-reserva.svg`) é desenhado como vetor; cada modelo define posição/cor em `logo: { x, y, h, cor }`. Sai sempre (sem opção de ocultar).
+- Logo: o pássaro da Reserva (`js/logo.js`, extraído de `assets/logo-reserva.svg`) é desenhado como vetor quando o modelo da Central liga a camada de logo.
 - Link com cupom: a mensagem leva a página do produto do modelo (ou a home da marca, ou uma página do usereserva.com que o vendedor colar) com `?bl_pr=<CUPOM>`, que aplica o cupom no site. Pode desligar.
 - Compartilhar: no celular abre a folha de compartilhamento com a imagem (WhatsApp, salvar
   na galeria etc.). No computador baixa a imagem e abre o WhatsApp Web com a mensagem.

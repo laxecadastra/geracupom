@@ -1,7 +1,7 @@
 {
-  "name": "Gerador de cupom Black Friday | Reserva",
-  "short_name": "Cupom BF",
-  "description": "Crie sua imagem de Black Friday com o seu cupom de vendedor e mande no WhatsApp.",
+  "name": "Gerador de imagem do vendedor | Reserva",
+  "short_name": "Código Reserva",
+  "description": "Crie sua imagem com o seu código de vendedor e mande no WhatsApp.",
   "lang": "pt-BR",
   "start_url": "/",
   "display": "standalone",
